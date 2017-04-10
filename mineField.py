@@ -4,6 +4,9 @@ import sys
 import turtle
 import random
 
+mineChar = "X"
+clearChar = "."
+
 # Draw the starting grid
 def grid(turtle, gridSize, xLimit, yLimit):
     for i in range(gridSize):
@@ -32,7 +35,7 @@ def createMaze(xSize,ySize):
     # create an empty list
     mazeArray=[]
     # create a line of mines
-    allMines=xSize*"1"
+    allMines=xSize*mineChar
     # now build a list of these
     for i in range(ySize):
         mazeArray.append(allMines)
@@ -48,23 +51,41 @@ def printMineField(mf):
 
 def setMine(mf,x,y):
     s=list(mf[y])
-    s[x]="1"
+    s[x]=mineChar
     mf[y]="".join(s)
     return(mf)
 
 def clearMine(mf,x,y):
     s=list(mf[y])
-    s[x]="0"
+    s[x]=clearChar
     mf[y]="".join(s)
     return(mf)
 
+def inactiveMine(mf,x,y):
+    return(mf[y][x]==clearChar)
+
 # A further sensible check, is the destination cell a valid one
-#def validDest(mf, curx, cury, x, y, gridSize):
-    
+def validDest(mf, curx, cury, x, y, gridSize):
+
+    for i in range(-1,1):
+        for j in range(-1,1):
+
+            checkX = x + i
+            checkY = y + j
+
+            if (checkX != curx) and (checkY != cury):
+                print("checking (" + str(checkX) + ", " + str(checkY) + ")")
+                if inactiveMine(mf,checkX, checkY):
+                   return(False)
+            else:
+                print("ignoring (" + str(checkX) + ", " + str(checkY) + ")")
+    return (True)
 
 
 # Make a route through the mines
 def makeRoute(mf,x,y,gridSize):
+
+    printMineField(mineField)
 
     # Are we done?
     if y == gridSize-1:
@@ -77,39 +98,34 @@ def makeRoute(mf,x,y,gridSize):
 
         while not sensible:
             dx = random.randint(-5,5)
-            if x+dx < 0:
-                sensible = False
-            elif x+dx > gridSize-1:
-                sensible = False
-            else:
-                sensible = True
+            dy = random.randint(-5,5)
 
-        for i in range(abs(dx)):
-            if dx<0:
-                mf=clearMine(mf,x-i,y)
-            else:
-                mf=clearMine(mf,x+i,y)
-            
-        sensible = False
-
-        while not sensible:
-            dy = random.randint(-2,5)
+            if dx > 1:
+                dx = 1
+            if dx < -1:
+                dx = -1
+            if dy > 1:
+                dy = 1
+            if dy < -1:
+                dy = -1
 
             if dx==0 and dy==0:
+                sensible = False
+            elif x+dx < 0:
+                sensible = False
+            elif x+dx > gridSize-1:
                 sensible = False
             elif y+dy < 0:
                 sensible = False
             elif y+dy > gridSize -1:
                 sensible = False
+            elif validDest(mf,x,y,x+dx,y+dy,gridSize)==False:
+                sensible = False
             else:
                 sensible = True
 
-        for i in range(abs(dy)):
-            if dy<0:
-                mf=clearMine(mf,x+dx,y-i)
-            else:
-                mf=clearMine(mf,x+dx,y+i)
-                
+        
+
         makeRoute(mf, x+dx, y+dy, gridSize)
         
 # **********************************************************************
@@ -118,7 +134,7 @@ def makeRoute(mf,x,y,gridSize):
 # **********************************************************************
 xlimit = 700
 ylimit = 700
-gridSize = 40
+gridSize = 10
 cellSizeX = xlimit/gridSize
 cellSizeY = ylimit/gridSize
 
@@ -148,7 +164,5 @@ myy = 0
 
 makeRoute(mineField,myx,myy, gridSize)
 
-# 
 printMineField(mineField)
-
 
